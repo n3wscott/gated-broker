@@ -68,14 +68,21 @@ func (h *Hub) Run() {
 			id := string(message)
 			if strings.HasPrefix(id, "> ") {
 				id := strings.TrimPrefix(id, "> ")
+
+				var approved bool
+				if strings.HasPrefix(id, "- ") {
+					id = strings.TrimPrefix(id, "- ")
+					approved = false
+				} else {
+					approved = true
+				}
+
 				for request := range h.Requests {
 					if request.ID == id {
-						request.Send <- &Response{ID: id, Approved: true}
-					} else {
-						request.Send <- &Response{ID: id, Approved: false}
+						request.Send <- &Response{ID: id, Approved: approved}
+						close(request.Send)
+						delete(h.Requests, request)
 					}
-					close(request.Send)
-					delete(h.Requests, request)
 				}
 			}
 		}
