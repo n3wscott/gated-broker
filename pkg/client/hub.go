@@ -73,7 +73,8 @@ func (h *Hub) Run() {
 				if strings.HasPrefix(id, "- ") {
 					id = strings.TrimPrefix(id, "- ")
 					approved = false
-				} else {
+				} else if strings.HasPrefix(id, "+ ") {
+					id = strings.TrimPrefix(id, "+ ")
 					approved = true
 				}
 

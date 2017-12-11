@@ -38,8 +38,34 @@ window.onload = function () {
         conn.onmessage = function (evt) {
             var messages = evt.data.split('\n');
             for (var i = 0; i < messages.length; i++) {
+                // if (messages[i].length > 0 && messages[i].charAt(0) == '>') {
+                //     continue;
+                // }
+
                 var item = document.createElement("div");
                 item.innerText = messages[i];
+
+                var acceptBtn = document.createElement("button");
+                acceptBtn.innerHTML = "Accept";
+
+                var declineBtn = document.createElement("button");
+                declineBtn.innerHTML = "Decline";
+
+                acceptBtn.addEventListener ("click", function() {
+                    acceptBtn.parentNode.removeChild(acceptBtn);
+                    declineBtn.parentNode.removeChild(declineBtn);
+                    conn.send("> + " + item.innerText)
+                });
+
+                declineBtn.addEventListener ("click", function() {
+                    acceptBtn.parentNode.removeChild(acceptBtn);
+                    declineBtn.parentNode.removeChild(declineBtn);
+                    conn.send("> - " + item.innerText)
+                });
+
+                item.appendChild(acceptBtn);
+                item.appendChild(declineBtn);
+
                 appendLog(item);
             }
         };
