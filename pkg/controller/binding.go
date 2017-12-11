@@ -1,8 +1,8 @@
 package controller
 
-import "github.com/n3wscott/gated-broker/pkg/apis/broker/v1"
+import "github.com/n3wscott/osb-framework-go/pkg/apis/broker/v2"
 
-func (b *BrokerController) CreateServiceBinding(instanceID, bindingID string, req *v1.BindingRequest) (*v1.CreateServiceBindingResponse, error) {
+func (b *BrokerController) CreateServiceBinding(instanceID, bindingID string, req *v2.BindingRequest) (*v2.CreateServiceBindingResponse, error) {
 	return nil, nil
 }
 

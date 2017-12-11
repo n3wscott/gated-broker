@@ -5,13 +5,14 @@ import (
 	"net/http"
 
 	"github.com/golang/glog"
-	"github.com/n3wscott/gated-broker/cmd/server"
+	"github.com/n3wscott/gated-broker/pkg/server"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
 
 func main() {
 	flag.Parse()
+
 
 	s := server.CreateServer()
 

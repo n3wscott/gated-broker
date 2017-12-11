@@ -16,5 +16,5 @@ func (s *server) GetHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	http.ServeFile(w, r, "cmd/server/static/home.html")
+	http.ServeFile(w, r, "static/home.html")
 }
