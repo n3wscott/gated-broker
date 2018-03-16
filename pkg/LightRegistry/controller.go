@@ -68,11 +68,15 @@ type OsbId string
 type Secret string
 
 type ControllerInstance struct {
-	// Master list.
-	IdToInstance map[LightId]LightInstance
 
-	// Light location+Kind
-	LocationKindToId map[Location]map[Kind]LightId
+	// Master list of lights.
+	IdToLight map[LightId]*Light
+
+	// Master list of instances.
+	IdToInstance map[LightId]*LightInstance
+
+	// Lights for a Location+Kind
+	LocationKindToIds map[Location]map[Kind][]LightId
 
 	// Helpful lookup lists.
 	OsbInstanceIdToId map[OsbId]LightId
@@ -80,7 +84,10 @@ type ControllerInstance struct {
 	OsbBindingIdToId  map[OsbId]LightId
 }
 
-func NewControllerInstance() *ControllerInstance {
+func NewControllerInstance(lights map[Location]map[Kind]int) *ControllerInstance {
 	c := ControllerInstance{}
+
+	c.populateLightInstancesFromLights(lights)
+
 	return &c
 }
