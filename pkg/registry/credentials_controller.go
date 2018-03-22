@@ -1,4 +1,4 @@
-package LightRegistry
+package registry
 
 import (
 	"fmt"

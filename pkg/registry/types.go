@@ -1,10 +1,11 @@
-package LightRegistry
+package registry
 
 type Controller interface {
 	RegistrationController
 	CredentialsController
 	CatalogController
 	LightController
+	HttpController
 }
 
 type RegistrationController interface {
@@ -23,6 +24,10 @@ type CatalogController interface {
 
 type LightController interface {
 	SetLightIntensity(secret Secret, intensity float32) error
+}
+
+type HttpController interface {
+	Graph() string
 }
 
 // The internal id of the light.

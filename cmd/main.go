@@ -15,7 +15,9 @@ import (
 	prom "github.com/prometheus/client_golang/prometheus"
 
 	//"github.com/n3wscott/gated-broker/pkg/server"
+
 	"github.com/n3wscott/gated-broker/pkg/broker"
+	"github.com/n3wscott/gated-broker/pkg/registry"
 	"github.com/pmorie/osb-broker-lib/pkg/metrics"
 	"github.com/pmorie/osb-broker-lib/pkg/rest"
 	"github.com/pmorie/osb-broker-lib/pkg/server"
@@ -95,6 +97,28 @@ func runWithContext(ctx context.Context) error {
 	s := server.New(api, reg)
 
 	glog.Infof("Starting broker!")
+
+	// TODO: light registry creation needs to happen somewhere else
+	lights := map[registry.Location]map[registry.Kind]int{
+		"Bedroom": {
+			"Red":   3,
+			"Green": 2,
+			"Blue":  1,
+		},
+		"Kitchen": {
+			"Red":   1,
+			"Green": 2,
+			"Blue":  3,
+		},
+	}
+
+	c := registry.NewControllerInstance(lights)
+	c.Register("aabbcc", "Bedroom", "Red")
+	binding, _ := c.AssignCredentials("aabbcc", "binding-aabbcc")
+	c.SetLightIntensity(binding.Secret, .5)
+
+	// TODO: could pass in the router to the registry and it can do the assigning internally.
+	s.Router.HandleFunc("/graph", c.HandleGetGraph).Methods("GET")
 
 	if options.TLSCert == "" && options.TLSKey == "" {
 		err = s.Run(ctx, addr)

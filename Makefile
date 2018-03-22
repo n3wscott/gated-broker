@@ -17,6 +17,9 @@ check: fmtcheck vet lint test ## Pre-flight checks before creating PR
 lint: ## Run golint
 	@golint -set_exit_status $(addsuffix /... , $(SOURCE_DIRS))
 
+run: ## Run the server
+	@go run ./cmd/main.go --logtostderr -v=1
+
 help: ## Show this help screen
 	@echo 'Usage: make <OPTIONS> ... <TARGETS>'
 	@echo ''

@@ -1,4 +1,4 @@
-package LightRegistry
+package registry
 
 func (l *Light) Default() {
 	l.Intensity = 0

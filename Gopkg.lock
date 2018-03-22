@@ -53,6 +53,12 @@
   revision = "9d6cf94f02e8056dbb6a586f4307bae7e6b610a1"
 
 [[projects]]
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
+  version = "v1.1"
+
+[[projects]]
   name = "github.com/pmorie/go-open-service-broker-client"
   packages = ["v2"]
   revision = "43fbcdcb3441d0563527208eb75062ae23280bd7"
@@ -106,6 +112,12 @@
   revision = "7186fbf4eb22a031bcd4657c8adc3fc39acf6d8a"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/tmc/dot"
+  packages = ["."]
+  revision = "8c03d6afdb435c5f35748288e2b9c1dbb484ae56"
+
+[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
@@ -114,6 +126,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "5b248ad571029e1314f1c0450c22f5fac7ecb8b1a39c97d87aaace26764e2445"
+  inputs-digest = "230ffd6aa44a4af8807a5abc2c015c7b6b0e8fc3e158758386f108cea9623cda"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,4 +1,4 @@
-package LightRegistry
+package registry
 
 import (
 	"testing"
@@ -30,8 +30,11 @@ func TestNewControllerInstanceTest(t *testing.T) {
 
 	glog.Infof("Starting state:\n%s", c)
 
-	c.Register("aabbcc", "Bedroom", "Red")
-	_, err := c.Register("aabbcc", "Bedroom", "Red")
+	instance, err := c.Register("aabbcc", "Bedroom", "Red")
+
+	glog.Infof("Graph: \n\n%s\n\n", instance.Graph())
+
+	_, err = c.Register("aabbcc", "Bedroom", "Red")
 	if err == nil {
 		t.Errorf("expected second call to register the same OSB id to fail")
 	}
