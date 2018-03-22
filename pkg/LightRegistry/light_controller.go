@@ -18,7 +18,7 @@ func (c *ControllerInstance) SetLightIntensity(secret Secret, intensity float32)
 		fmt.Errorf("error: secret[%s] in use but mapped to nil light", secret)
 	}
 
-	light.Intensity = intensity
+	light.Intensity = intensity // TODO: this should be a method on light so it has a chance to act
 
 	return nil
 }
