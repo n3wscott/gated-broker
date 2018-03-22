@@ -14,7 +14,7 @@ type RegistrationController interface {
 
 type CredentialsController interface {
 	AssignCredentials(osbInstanceId OsbId, osbBindingId OsbId) (*LightBinding, error)
-	RemoveCredentials() (*string, error)
+	RemoveCredentials(osbBindingId OsbId) error
 }
 
 type CatalogController interface {

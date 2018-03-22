@@ -7,7 +7,7 @@ import "fmt"
 func (c *ControllerInstance) Register(osbInstanceId OsbId, location Location, kind Kind) (*LightInstance, error) {
 	// Make sure the osb id is not in use already.
 	if c.OsbInstanceIdToId[osbInstanceId] != "" {
-		return nil, fmt.Errorf("error: OsbId[%s] already registered", osbInstanceId)
+		return nil, fmt.Errorf("error: Instance[%s] already registered", osbInstanceId)
 	}
 
 	// find if there is a free light in the location given.
@@ -37,5 +37,28 @@ func (c *ControllerInstance) Register(osbInstanceId OsbId, location Location, ki
 }
 
 func (c *ControllerInstance) Deregister(osbInstanceId OsbId) error {
+
+	// Make sure the osb id is in use already.
+	lightId := c.OsbInstanceIdToId[osbInstanceId]
+	if lightId == "" {
+		return fmt.Errorf("error: Instance[%s] is not registered", osbInstanceId)
+	}
+
+	// get the instance
+	instance := c.IdToInstance[lightId]
+
+	// confirm there are no bindings for the instance
+	if len(instance.Bindings) > 0 {
+		return fmt.Errorf("error: Instance[%s] has active bindings", osbInstanceId)
+	}
+
+	// remove the instance and disconnect the maps
+	c.IdToInstance[lightId] = nil
+	c.OsbInstanceIdToId[osbInstanceId] = ""
+
+	// get the light and Default it
+	light := c.IdToLight[lightId]
+	light.Default()
+
 	return nil
 }

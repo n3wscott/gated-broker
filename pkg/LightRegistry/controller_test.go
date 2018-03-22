@@ -33,18 +33,29 @@ func TestNewControllerInstanceTest(t *testing.T) {
 	c.Register("aabbcc", "Bedroom", "Red")
 	_, err := c.Register("aabbcc", "Bedroom", "Red")
 	if err == nil {
-		t.Errorf("Expected second call to register the same OSB id to fail.")
+		t.Errorf("expected second call to register the same OSB id to fail")
 	}
 
-	glog.Infof("After registering:\n%s", c)
+	glog.Infof("after registering:\n%s", c)
 
 	binding, err := c.AssignCredentials("aabbcc", "binding-aabbcc")
 
-	glog.Infof("Got back this binding: %s", binding)
+	glog.Infof("got back this binding: %s", binding)
 
 	c.SetLightIntensity(binding.Secret, .5)
+	c.SetLightIntensity(binding.Secret, .7)
 
-	glog.Infof("After light toggle:\n%s", c)
+	glog.Infof("after light toggle:\n%s", c)
+
+	if err := c.Deregister("aabbcc"); err == nil {
+		t.Errorf("expected Deregister to fail, we still have bindings")
+	}
+
+	c.RemoveCredentials(binding.OsbBindingId)
+
+	c.Deregister("aabbcc")
+
+	glog.Infof("after deregister:\n%s", c)
 
 	glog.Flush()
 }

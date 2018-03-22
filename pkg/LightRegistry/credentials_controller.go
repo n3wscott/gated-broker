@@ -46,6 +46,37 @@ func (c *ControllerInstance) AssignCredentials(osbInstanceId OsbId, osbBindingId
 	return &binding, nil
 }
 
-func (c *ControllerInstance) RemoveCredentials() (*string, error) {
-	return nil, nil
+func (c *ControllerInstance) RemoveCredentials(osbBindingId OsbId) error {
+
+	// get the light id from binding id
+	lightId := c.OsbBindingIdToId[osbBindingId]
+	if lightId == "" {
+		return fmt.Errorf("error: bindingId[%s] is not in use", osbBindingId)
+	}
+
+	// get the instance from light id
+	instance := c.IdToInstance[lightId]
+
+	// remove the binding from the instance
+	var binding *LightBinding
+	for i, b := range instance.Bindings {
+		if b.OsbBindingId == osbBindingId {
+			binding = &b
+			// swap the binding to the end of the list and decrease the list
+			// TODO: it could be simpler to just use a map for instance bindings
+			instance.Bindings[i] = instance.Bindings[len(instance.Bindings)-1]
+			instance.Bindings = instance.Bindings[:len(instance.Bindings)-1]
+			break
+		}
+	}
+
+	if binding == nil {
+		return fmt.Errorf("error: bindingId[%s] is mapped but not part of the instance[%s]", osbBindingId, instance.OsbInstanceId)
+	}
+
+	// clean up the maps
+	c.SecretToId[binding.Secret] = ""
+	c.OsbBindingIdToId[osbBindingId] = ""
+
+	return nil
 }
