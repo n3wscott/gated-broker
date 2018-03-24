@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
-  revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
+  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
   branch = "master"
@@ -44,15 +44,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/n3wscott/osb-framework-go"
-  packages = [
-    "pkg/apis/broker/v2",
-    "pkg/server"
-  ]
-  revision = "9d6cf94f02e8056dbb6a586f4307bae7e6b610a1"
-
-[[projects]]
   name = "github.com/pborman/uuid"
   packages = ["."]
   revision = "e790cca94e6cc75c7064b1332e63811d4aae1a53"
@@ -61,8 +52,8 @@
 [[projects]]
   name = "github.com/pmorie/go-open-service-broker-client"
   packages = ["v2"]
-  revision = "43fbcdcb3441d0563527208eb75062ae23280bd7"
-  version = "0.0.4"
+  revision = "87e2f174c3a1d416379eaa0cfe29f6fa0668e780"
+  version = "0.0.9"
 
 [[projects]]
   name = "github.com/pmorie/osb-broker-lib"
@@ -72,8 +63,8 @@
     "pkg/rest",
     "pkg/server"
   ]
-  revision = "09f9a56b8280b39c1fea3af905cbee0d99617c29"
-  version = "0.0.2"
+  revision = "34c1336d491bc27d709018548101937028aeec99"
+  version = "0.0.4"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
@@ -98,7 +89,7 @@
     "internal/bitbucket.org/ww/goautoneg",
     "model"
   ]
-  revision = "6fb6fce6f8b75884b92e1889c150403fc0872c5e"
+  revision = "e4aa40a9169a88835b849a6efb71e05dc04b88f0"
 
 [[projects]]
   branch = "master"
@@ -109,7 +100,7 @@
     "nfs",
     "xfs"
   ]
-  revision = "7186fbf4eb22a031bcd4657c8adc3fc39acf6d8a"
+  revision = "780932d4fbbe0e69b84c34c20f5c8d0981e109ea"
 
 [[projects]]
   branch = "master"
@@ -126,6 +117,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "230ffd6aa44a4af8807a5abc2c015c7b6b0e8fc3e158758386f108cea9623cda"
+  inputs-digest = "718a74234f2d2042d3513bf7864ea2e42fe542a563078db670859de549a4892f"
   solver-name = "gps-cdcl"
   solver-version = 1

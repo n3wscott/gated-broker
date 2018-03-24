@@ -1,5 +1,7 @@
 package registry
 
+import "net/http"
+
 type Controller interface {
 	RegistrationController
 	CredentialsController
@@ -28,6 +30,7 @@ type LightController interface {
 
 type HttpController interface {
 	Graph() string
+	HandleGetGraph(w http.ResponseWriter, r *http.Request)
 }
 
 // The internal id of the light.

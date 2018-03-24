@@ -1,12 +1,13 @@
 package broker
 
 import (
-	"net/http"
 	"sync"
 
 	"github.com/pmorie/osb-broker-lib/pkg/broker"
 
 	"github.com/golang/glog"
+	"github.com/gorilla/mux"
+	"github.com/n3wscott/gated-broker/pkg/registry"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
 	"gopkg.in/yaml.v2"
 )
@@ -18,21 +19,41 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	// For example, if your BusinessLogic requires a parameter from the command
 	// line, you would unpack it from the Options and set it on the
 	// BusinessLogic here.
+
+	// TODO: light registry creation needs to happen somewhere else
+	lights := map[registry.Location]map[registry.Kind]int{
+		"Bedroom": {
+			"Red":   3,
+			"Green": 2,
+			"Blue":  1,
+		},
+		"Kitchen": {
+			"Red":   1,
+			"Green": 2,
+			"Blue":  3,
+		},
+	}
+
 	return &BusinessLogic{
-		async:     o.Async,
-		instances: make(map[string]*exampleInstance, 10),
+		async:    o.Async,
+		Registry: registry.NewControllerInstance(lights),
 	}, nil
 }
 
 // BusinessLogic provides an implementation of the broker.BusinessLogic
 // interface.
 type BusinessLogic struct {
-	// Indiciates if the broker should handle the requests asynchronously.
+	// Indicates if the broker should handle the requests asynchronously.
 	async bool
 	// Synchronize go routines.
 	sync.RWMutex
-	// Add fields here! These fields are provided purely as an example
-	instances map[string]*exampleInstance
+	// The light registry
+	Registry registry.Controller
+}
+
+func (b *BusinessLogic) AdditionalRouting(router *mux.Router) {
+	// TODO: could pass in the router to the registry and it can do the assigning internally.
+	router.HandleFunc("/graph", b.Registry.HandleGetGraph).Methods("GET")
 }
 
 var _ broker.BusinessLogic = &BusinessLogic{}
@@ -96,8 +117,8 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 
 	response := osb.ProvisionResponse{}
 
-	exampleInstance := &exampleInstance{ID: request.InstanceID, Params: request.Parameters}
-	b.instances[request.InstanceID] = exampleInstance
+	//exampleInstance := &exampleInstance{ID: request.InstanceID, Params: request.Parameters}
+	//b.instances[request.InstanceID] = exampleInstance
 
 	if request.AcceptsIncomplete {
 		response.Async = b.async
@@ -115,7 +136,7 @@ func (b *BusinessLogic) Deprovision(request *osb.DeprovisionRequest, c *broker.R
 
 	response := osb.DeprovisionResponse{}
 
-	delete(b.instances, request.InstanceID)
+	//delete(b.instances, request.InstanceID)
 
 	if request.AcceptsIncomplete {
 		response.Async = b.async
@@ -137,15 +158,15 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 	b.Lock()
 	defer b.Unlock()
 
-	instance, ok := b.instances[request.InstanceID]
-	if !ok {
-		return nil, osb.HTTPStatusCodeError{
-			StatusCode: http.StatusNotFound,
-		}
-	}
+	//instance, ok := b.instances[request.InstanceID]
+	//if !ok {
+	//	return nil, osb.HTTPStatusCodeError{
+	//		StatusCode: http.StatusNotFound,
+	//	}
+	//}
 
 	response := osb.BindResponse{
-		Credentials: instance.Params,
+	//Credentials: instance.Params,
 	}
 	if request.AcceptsIncomplete {
 		response.Async = b.async
