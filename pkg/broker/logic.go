@@ -5,11 +5,12 @@ import (
 
 	"github.com/pmorie/osb-broker-lib/pkg/broker"
 
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/n3wscott/gated-broker/pkg/registry"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
-	"gopkg.in/yaml.v2"
 )
 
 // NewBusinessLogic is a hook that is called with the Options the program is run
@@ -48,7 +49,7 @@ type BusinessLogic struct {
 	// Synchronize go routines.
 	sync.RWMutex
 	// The light registry
-	Registry registry.Controller
+	Registry *registry.ControllerInstance
 }
 
 func (b *BusinessLogic) AdditionalRouting(router *mux.Router) {
@@ -62,49 +63,23 @@ func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogRes
 	// Your catalog business logic goes here
 	response := &broker.CatalogResponse{}
 
-	data := `
----
-services:
-- name: example-starter-pack-service
-  id: 4f6e6cf6-ffdd-425f-a2c7-3c9258ad246a
-  description: The example service from the osb starter pack!
-  bindable: true
-  plan_updateable: true
-  metadata:
-    displayName: "Example starter-pack service"
-    imageUrl: https://avatars2.githubusercontent.com/u/19862012?s=200&v=4
-  plans:
-  - name: default
-    id: 86064792-7ea2-467b-af93-ac9694d96d5b
-    description: The default plan for the starter pack example service
-    free: true
-    schemas:
-      service_instance:
-        create:
-          "$schema": "http://json-schema.org/draft-04/schema"
-          "type": "object"
-          "title": "Parameters"
-          "properties":
-          - "name":
-              "title": "Some Name"
-              "type": "string"
-              "maxLength": 63
-              "default": "My Name"
-          - "color":
-              "title": "Color"
-              "type": "string"
-              "default": "Clear"
-              "enum":
-              - "Clear"
-              - "Beige"
-              - "Grey"
-`
-
-	err := yaml.Unmarshal([]byte(data), &response.CatalogResponse)
-	if err != nil {
-		return nil, err
+	for location, kinds := range b.Registry.LocationKindToIds {
+		service := osb.Service{
+			ID:          strings.ToLower("location-" + string(location)),
+			Name:        string(location),
+			Description: "A set of lights in " + string(location),
+			Bindable:    true,
+		}
+		for kind, _ := range kinds {
+			plan := osb.Plan{
+				ID:          strings.ToLower("location-" + string(location) + "-kind-" + string(kind)),
+				Name:        string(kind),
+				Description: "Light type " + string(kind),
+			}
+			service.Plans = append(service.Plans, plan)
+		}
+		response.Services = append(response.Services, service)
 	}
-
 	return response, nil
 }
 
