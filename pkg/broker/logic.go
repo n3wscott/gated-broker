@@ -7,6 +7,8 @@ import (
 
 	"strings"
 
+	"net/http"
+
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/n3wscott/gated-broker/pkg/registry"
@@ -50,6 +52,8 @@ type BusinessLogic struct {
 	sync.RWMutex
 	// The light registry
 	Registry *registry.ControllerInstance
+	// Add fields here! These fields are provided purely as an example
+	instances map[string]*exampleInstance
 }
 
 func (b *BusinessLogic) AdditionalRouting(router *mux.Router) {
@@ -133,16 +137,19 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 	b.Lock()
 	defer b.Unlock()
 
-	//instance, ok := b.instances[request.InstanceID]
-	//if !ok {
-	//	return nil, osb.HTTPStatusCodeError{
-	//		StatusCode: http.StatusNotFound,
-	//	}
-	//}
+	instance, ok := b.instances[request.InstanceID]
+	if !ok {
+		return nil, osb.HTTPStatusCodeError{
+			StatusCode: http.StatusNotFound,
+		}
+	}
 
 	response := broker.BindResponse{
-	//Credentials: instance.Params,
+		BindResponse: osb.BindResponse{
+			Credentials: instance.Params,
+		},
 	}
+
 	if request.AcceptsIncomplete {
 		response.Async = b.async
 	}
