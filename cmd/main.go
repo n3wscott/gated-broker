@@ -12,7 +12,6 @@ import (
 	"syscall"
 
 	"github.com/golang/glog"
-	prom "github.com/prometheus/client_golang/prometheus"
 
 	//"github.com/n3wscott/gated-broker/pkg/server"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/pmorie/osb-broker-lib/pkg/metrics"
 	"github.com/pmorie/osb-broker-lib/pkg/rest"
 	"github.com/pmorie/osb-broker-lib/pkg/server"
+	prom "github.com/prometheus/client_golang/prometheus"
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
@@ -92,8 +92,9 @@ func runWithContext(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	api.EnableCORS = true
 
-	s := server.New(api, reg)
+	s := server.New(api, nil)
 
 	glog.Infof("Starting broker!")
 

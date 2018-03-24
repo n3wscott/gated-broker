@@ -24,6 +24,9 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[constraint]]
+  name = "github.com/pmorie/osb-broker-lib"
+  branch = "master"
 
 [[constraint]]
   branch = "master"

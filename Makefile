@@ -2,6 +2,8 @@ SOURCES       := $(shell find . -name '*.go' -not -path "*/vendor/*")
 SOURCE_DIRS    = pkg
 .DEFAULT_GOAL := check
 
+build: ## Compile all the files
+	@go build ./...
 
 fmtcheck: ## Check go formatting
 	@gofmt -l $(SOURCES) | grep ".*\.go"; if [ "$$?" = "0" ]; then exit 1; fi
