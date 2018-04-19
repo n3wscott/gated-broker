@@ -20,5 +20,7 @@ func (c *ControllerInstance) SetLightIntensity(secret Secret, intensity float32)
 
 	light.Intensity = intensity // TODO: this should be a method on light so it has a chance to act
 
+	c.LightBoard.SetIntensity(light.Index, light.Intensity)
+
 	return nil
 }

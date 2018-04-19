@@ -9,6 +9,10 @@ import (
 
 	"net/http"
 
+	"fmt"
+
+	"reflect"
+
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 	"github.com/n3wscott/gated-broker/pkg/registry"
@@ -24,22 +28,12 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	// BusinessLogic here.
 
 	// TODO: light registry creation needs to happen somewhere else
-	lights := map[registry.Location]map[registry.Kind]int{
-		"Bedroom": {
-			"Red":   3,
-			"Green": 2,
-			"Blue":  1,
-		},
-		"Kitchen": {
-			"Red":   1,
-			"Green": 2,
-			"Blue":  3,
-		},
-	}
+	lights := make(map[registry.Location]map[registry.Kind]int, 10)
 
 	return &BusinessLogic{
-		async:    o.Async,
-		Registry: registry.NewControllerInstance(lights),
+		async:     o.Async,
+		instances: make(map[string]*Instance, 10),
+		Registry:  registry.NewControllerInstance("/dev/cu.usbmodem1441", lights),
 	}, nil
 }
 
@@ -52,18 +46,25 @@ type BusinessLogic struct {
 	sync.RWMutex
 	// The light registry
 	Registry *registry.ControllerInstance
-	// Add fields here! These fields are provided purely as an example
-	instances map[string]*exampleInstance
+	// todo
+	instances map[string]*Instance
+
+	catalog *broker.CatalogResponse
 }
 
 func (b *BusinessLogic) AdditionalRouting(router *mux.Router) {
 	// TODO: could pass in the router to the registry and it can do the assigning internally.
 	router.HandleFunc("/graph", b.Registry.HandleGetGraph).Methods("GET")
+	router.HandleFunc("/light/{secret}", b.Registry.HandleSetLight).Methods("PUT")
 }
 
 var _ broker.Interface = &BusinessLogic{}
 
 func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogResponse, error) {
+	if b.catalog != nil {
+		return b.catalog, nil
+	}
+
 	// Your catalog business logic goes here
 	response := &broker.CatalogResponse{}
 
@@ -84,7 +85,25 @@ func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogRes
 		}
 		response.Services = append(response.Services, service)
 	}
+	// save the catalog for later
+	b.catalog = response
 	return response, nil
+}
+
+func (b *BusinessLogic) osbServicePlanToRegistryLocationKind(serviceId, planId string) (registry.Location, registry.Kind) {
+	if b.catalog == nil {
+		b.GetCatalog(nil) // todo this could throw an error in theory
+	}
+	for _, s := range b.catalog.Services {
+		if s.ID == serviceId {
+			for _, p := range s.Plans {
+				if p.ID == planId {
+					return registry.Location(s.Name), registry.Kind(p.Name)
+				}
+			}
+		}
+	}
+	return registry.Location(""), registry.Kind("")
 }
 
 func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.RequestContext) (*broker.ProvisionResponse, error) {
@@ -96,12 +115,39 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 
 	response := broker.ProvisionResponse{}
 
-	//exampleInstance := &exampleInstance{ID: request.InstanceID, Params: request.Parameters}
-	//b.instances[request.InstanceID] = exampleInstance
-
-	if request.AcceptsIncomplete {
-		response.Async = b.async
+	instance := &Instance{
+		ID:        request.InstanceID,
+		ServiceID: request.ServiceID,
+		PlanID:    request.PlanID,
+		Params:    request.Parameters,
 	}
+
+	if b.instances[request.InstanceID] != nil {
+		i := b.instances[request.InstanceID]
+		if i.Match(instance) {
+			response.Exists = true
+		} else {
+			glog.Error("InstanceID in use")
+			return nil, fmt.Errorf("InstanceID in use")
+		}
+	}
+
+	location, kind := b.osbServicePlanToRegistryLocationKind(request.ServiceID, request.PlanID)
+	light, err := b.Registry.Register(registry.OsbId(request.InstanceID), location, kind)
+
+	if err != nil {
+		return nil, err
+	}
+
+	b.instances[request.InstanceID] = instance
+
+	dashboardURL := fmt.Sprintf("http:///%s/", string(light.Id))
+	response.DashboardURL = &dashboardURL
+
+	// when we support async:
+	//if request.AcceptsIncomplete {
+	//	response.Async = b.async
+	//}
 
 	return &response, nil
 }
@@ -115,11 +161,13 @@ func (b *BusinessLogic) Deprovision(request *osb.DeprovisionRequest, c *broker.R
 
 	response := broker.DeprovisionResponse{}
 
-	//delete(b.instances, request.InstanceID)
+	// TODO
 
-	if request.AcceptsIncomplete {
-		response.Async = b.async
-	}
+	delete(b.instances, request.InstanceID)
+
+	//if request.AcceptsIncomplete {
+	//	response.Async = b.async
+	//}
 
 	return &response, nil
 }
@@ -137,21 +185,27 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 	b.Lock()
 	defer b.Unlock()
 
-	instance, ok := b.instances[request.InstanceID]
+	_, ok := b.instances[request.InstanceID]
 	if !ok {
 		return nil, osb.HTTPStatusCodeError{
 			StatusCode: http.StatusNotFound,
 		}
 	}
 
+	lightBinding, err := b.Registry.AssignCredentials(registry.OsbId(request.InstanceID), registry.OsbId(request.BindingID))
+	if err != nil {
+		return nil, err
+	}
+	//if request.AcceptsIncomplete {
+	//	response.Async = b.async
+	//}
+
+	url := fmt.Sprintf("http://localhost:3000/light/%s", lightBinding.Secret)
+
 	response := broker.BindResponse{
 		BindResponse: osb.BindResponse{
-			Credentials: instance.Params,
+			Credentials: map[string]interface{}{"url": url},
 		},
-	}
-
-	if request.AcceptsIncomplete {
-		response.Async = b.async
 	}
 
 	return &response, nil
@@ -177,10 +231,13 @@ func (b *BusinessLogic) ValidateBrokerAPIVersion(version string) error {
 	return nil
 }
 
-// example types
+type Instance struct {
+	ID        string
+	ServiceID string
+	PlanID    string
+	Params    map[string]interface{}
+}
 
-// exampleInstance is intended as an example of a type that holds information about a service instance
-type exampleInstance struct {
-	ID     string
-	Params map[string]interface{}
+func (i *Instance) Match(other *Instance) bool {
+	return reflect.DeepEqual(i, other)
 }

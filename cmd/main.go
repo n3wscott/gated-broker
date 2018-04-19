@@ -94,7 +94,7 @@ func runWithContext(ctx context.Context) error {
 	}
 	api.EnableCORS = true
 
-	s := server.New(api, nil)
+	s := server.New(api, reg)
 
 	glog.Infof("Starting broker!")
 

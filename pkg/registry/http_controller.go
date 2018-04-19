@@ -12,7 +12,11 @@ import (
 
 	"fmt"
 
+	"encoding/json"
+	"io/ioutil"
+
 	"github.com/golang/glog"
+	"github.com/gorilla/mux"
 	"github.com/tmc/dot"
 )
 
@@ -20,6 +24,40 @@ import (
 func (c *ControllerInstance) HandleGetGraph(w http.ResponseWriter, r *http.Request) {
 	dot := c.Graph()
 	writeImageFromDot(w, dot)
+}
+
+type SetLightRequest struct {
+	Intensity float32 `json:"intensity"`
+}
+
+func (c *ControllerInstance) HandleSetLight(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	secret := vars["secret"]
+	request := &SetLightRequest{}
+	if err := unmarshalRequestBody(r, request); err != nil {
+		http.Error(w, "{\"error\":\"invalid request\"}", http.StatusBadRequest)
+		return
+	}
+
+	if err := c.SetLightIntensity(Secret(secret), request.Intensity); err != nil {
+		http.Error(w, "{\"error\":\"invalid secret\"}", http.StatusBadRequest)
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func unmarshalRequestBody(request *http.Request, obj interface{}) error {
+	body, err := ioutil.ReadAll(request.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(body, obj)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var ImageTemplate string = `<!DOCTYPE html>

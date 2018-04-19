@@ -1,9 +1,20 @@
 package registry
 
-func NewControllerInstance(lights map[Location]map[Kind]int) *ControllerInstance {
+import (
+	"github.com/golang/glog"
+	"github.com/n3wscott/gated-broker/pkg/lightboard"
+)
+
+func NewControllerInstance(port string, lights map[Location]map[Kind]int) *ControllerInstance {
 	c := ControllerInstance{}
 
-	c.populateLightInstancesFromLights(lights)
+	c.populateLightInstancesForLEDHouse(10)
 
+	lightBoard, err := lightboard.NewLightBoard(port, 10)
+	if err != nil {
+		glog.Fatal("Failed to connect to light board on port ", port)
+	}
+
+	c.LightBoard = lightBoard
 	return &c
 }

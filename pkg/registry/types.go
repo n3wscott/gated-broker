@@ -1,6 +1,10 @@
 package registry
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/n3wscott/gated-broker/pkg/lightboard"
+)
 
 type Controller interface {
 	RegistrationController
@@ -45,25 +49,10 @@ type LightInstance struct {
 
 type Light struct {
 	Id        LightId
+	Index     int
 	Location  Location
 	Kind      Kind
 	Intensity float32
-	RGBLight
-	WhiteLight
-	TemperatureLight
-}
-
-type RGBLight struct {
-	Red   float32
-	Green float32
-	Blue  float32
-}
-
-type WhiteLight struct {
-}
-
-type TemperatureLight struct {
-	Temperature float32 // percentage cool to warm
 }
 
 // The container of all the light binding details.
@@ -93,4 +82,6 @@ type ControllerInstance struct {
 	OsbInstanceIdToId map[OsbId]LightId
 	SecretToId        map[Secret]LightId
 	OsbBindingIdToId  map[OsbId]LightId
+
+	LightBoard *lightboard.LightBoard
 }

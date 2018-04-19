@@ -19,18 +19,49 @@ func (c *ControllerInstance) populateLightInstancesFromLights(lights map[Locatio
 	c.OsbBindingIdToId = make(map[OsbId]LightId)
 	c.SecretToId = make(map[Secret]LightId)
 
+	index := 0
+
 	for location, kinds := range lights {
-		//		glog.Infof("For location %s, %d kinds", location, len(kinds))
-
 		c.LocationKindToIds[location] = make(map[Kind][]LightId)
-
 		for kind, count := range kinds {
-			//			glog.Infof("\tFor kind %s, %d lights", kind, count)
-
 			for i := 0; i < count; i++ {
 				light := newLight(location, kind)
+				light.Index = index
+				index++
 				c.IdToLight[light.Id] = &light
 				c.LocationKindToIds[location][kind] = append(c.LocationKindToIds[location][kind], light.Id)
+			}
+		}
+	}
+}
+
+func (c *ControllerInstance) populateLightInstancesForLEDHouse(leds int) {
+
+	//glog.Infof("Going to process %d locations.", len(lights))
+
+	c.IdToLight = make(map[LightId]*Light)
+	c.IdToInstance = make(map[LightId]*LightInstance)
+	c.LocationKindToIds = make(map[Location]map[Kind][]LightId)
+	c.OsbInstanceIdToId = make(map[OsbId]LightId)
+	c.OsbBindingIdToId = make(map[OsbId]LightId)
+	c.SecretToId = make(map[Secret]LightId)
+
+	index := 0
+
+	for _, floor := range []string{"1", "2", "3", "4"} {
+		for _, door := range []string{"A", "B", "C"} {
+			location := Location(fmt.Sprintf("%s%s", floor, door))
+			c.LocationKindToIds[location] = make(map[Kind][]LightId)
+			for _, kind := range []Kind{"Red", "Green", "Blue"} {
+				light := newLight(location, kind)
+				light.Index = index
+				index++
+				c.IdToLight[light.Id] = &light
+				c.LocationKindToIds[location][kind] = append(c.LocationKindToIds[location][kind], light.Id)
+			}
+			if floor == "4" {
+				// just one room on floor 4
+				break
 			}
 		}
 	}
