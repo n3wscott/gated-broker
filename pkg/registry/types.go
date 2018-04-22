@@ -3,6 +3,7 @@ package registry
 import (
 	"net/http"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/n3wscott/ledhouse-broker/pkg/lightboard"
 )
 
@@ -84,4 +85,8 @@ type ControllerInstance struct {
 	OsbBindingIdToId  map[OsbId]LightId
 
 	LightBoard *lightboard.LightBoard
+
+	// For Pub/Sub
+	Subscription *pubsub.Subscription
+	Client       *pubsub.Client
 }

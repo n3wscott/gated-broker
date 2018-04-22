@@ -6,6 +6,10 @@ import (
 
 type Options struct {
 	SerialPort string
+
+	// For Pub/Sub
+	ProjectID    string
+	Subscription string
 }
 
 // AddFlags is a hook called to initialize the CLI flags for broker options.
@@ -13,4 +17,7 @@ type Options struct {
 // parse is called.
 func AddFlags(o *Options) {
 	flag.StringVar(&o.SerialPort, "serial", "", "The serial port to use to connect to the ledhouse.")
+
+	flag.StringVar(&o.ProjectID, "projectId", "", "GCP projectId, for Pub/Sub")
+	flag.StringVar(&o.Subscription, "subscription", "", "Pub/Sub subscription the Light Registry will use")
 }

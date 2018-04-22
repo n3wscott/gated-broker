@@ -48,7 +48,7 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 
 	return &BusinessLogic{
 		instances: make(map[string]*Instance, 10),
-		Registry:  registry.NewControllerInstance(o.SerialPort, lights),
+		Registry:  registry.NewControllerInstance(o.SerialPort, lights, o.ProjectID, o.Subscription),
 	}, nil
 }
 

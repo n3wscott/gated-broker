@@ -1,11 +1,13 @@
 package registry
 
 import (
+	"context"
+
 	"github.com/golang/glog"
 	"github.com/n3wscott/ledhouse-broker/pkg/lightboard"
 )
 
-func NewControllerInstance(port string, lights map[Location]map[Kind]int) *ControllerInstance {
+func NewControllerInstance(port string, lights map[Location]map[Kind]int, projectId, subscription string) *ControllerInstance {
 	c := ControllerInstance{}
 
 	c.populateLightInstancesForLEDHouse(10)
@@ -16,5 +18,8 @@ func NewControllerInstance(port string, lights map[Location]map[Kind]int) *Contr
 	}
 
 	c.LightBoard = lightBoard
+
+	go c.PubSubControllerRun(context.Background(), projectId, subscription)
+
 	return &c
 }
