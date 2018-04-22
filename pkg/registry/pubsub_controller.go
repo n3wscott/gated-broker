@@ -6,8 +6,11 @@ import (
 
 	"sync"
 
+	"encoding/json"
+
 	"cloud.google.com/go/pubsub"
 	"github.com/golang/glog"
+	"github.com/n3wscott/ledhouse-broker/pkg/registry/api"
 )
 
 func (c *ControllerInstance) PubSubControllerRun(ctx context.Context, projectID, subscription string) error {
@@ -34,6 +37,14 @@ func (c *ControllerInstance) PubSubControllerRun(ctx context.Context, projectID,
 		received++
 		glog.Info("Got message: ", string(msg.Data))
 		msg.Ack()
+
+		req := &api.LightRequest{}
+		if err := json.Unmarshal(msg.Data, &req); err != nil {
+			glog.Errorf("Failed to unmarshal light request: %v", err)
+		}
+		if err := c.SetLightIntensity(Secret(req.Token), req.Intensity); err != nil {
+			glog.Errorf("Failed SetLightIntensity. %v", err)
+		}
 	})
 	if err != nil {
 		return err

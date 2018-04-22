@@ -10,18 +10,25 @@ import (
 	"os/signal"
 	"syscall"
 
+	"encoding/json"
+
 	"cloud.google.com/go/pubsub"
 	"github.com/golang/glog"
+	"github.com/n3wscott/ledhouse-broker/pkg/registry/api"
 )
 
 var options struct {
 	ProjectID string
 	Topic     string
+	Token     string
+	Intensity float64
 }
 
 func init() {
 	flag.StringVar(&options.ProjectID, "projectId", "", "specify the gcp projectId")
 	flag.StringVar(&options.Topic, "topic", "", "specify the pub/sub topic")
+	flag.StringVar(&options.Token, "token", "", "A light binding token")
+	flag.Float64Var(&options.Intensity, "intensity", 1.0, "Light intensity, [0-1.0]")
 	flag.Parse()
 }
 
@@ -57,7 +64,7 @@ func runWithContext(ctx context.Context) error {
 		log.Fatal(err)
 	}
 
-	send(topic)
+	send(topic, options.Token, float32(options.Intensity))
 
 	return nil
 }
@@ -78,11 +85,21 @@ func cancelOnInterrupt(ctx context.Context, f context.CancelFunc) {
 	}
 }
 
-func send(topic *pubsub.Topic) {
+func send(topic *pubsub.Topic, token string, intensity float32) {
 	ctx := context.Background()
 
+	// json := json.M
+
+	json, err := json.Marshal(api.LightRequest{
+		Token:     token,
+		Intensity: intensity,
+	})
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	msg := &pubsub.Message{
-		Data: []byte("hello"),
+		Data: json,
 	}
 
 	if _, err := topic.Publish(ctx, msg).Get(ctx); err != nil {
