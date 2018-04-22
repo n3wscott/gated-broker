@@ -4,6 +4,8 @@ printf "\n\nGet the catalog:\n\n"
 
 curl -X GET "http://localhost:3000/v2/catalog" -H "accept: application/json" -H "X-Broker-API-Version: 2.13"
 
+# -----------------------
+
 printf "\n\nProvision the light registry:\n\n"
 
 curl -X PUT "http://localhost:3000/v2/service_instances/lightreg" -H "accept: application/json" \
@@ -11,6 +13,16 @@ curl -X PUT "http://localhost:3000/v2/service_instances/lightreg" -H "accept: ap
   -H "X-Broker-API-Originating-Identity: petstore eyJoZWxsbyI6MH0=" \
   -H "Content-Type: application/json" \
   -d "{\"service_id\":\"light-registry\",\"plan_id\":\"default\"}"
+
+printf "\n\nBind to the light registry:\n\n"
+
+curl -X PUT "http://localhost:3000/v2/service_instances/lightreg/service_bindings/binding-lightreg" \
+  -H "accept: application/json" -H "X-Broker-API-Version: 2.13" \
+  -H "X-Broker-API-Originating-Identity: petstore eyJoZWxsbyI6MH0=" \
+  -H "Content-Type: application/json" \
+  -d "{\"service_id\":\"light-registry\",\"plan_id\":\"default\"}"
+
+# ------------------------
 
 printf "\n\nProvision a light:\n\n"
 

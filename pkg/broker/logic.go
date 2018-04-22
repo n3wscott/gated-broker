@@ -30,15 +30,8 @@ func usage() {
 	os.Exit(-1)
 }
 
-// NewBusinessLogic is a hook that is called with the Options the program is run
-// with. NewBusinessLogic is the place where you will initialize your
-// BusinessLogic the parameters passed in.
 func NewBusinessLogic(o Options) (*BusinessLogic, error) {
-	// For example, if your BusinessLogic requires a parameter from the command
-	// line, you would unpack it from the Options and set it on the
-	// BusinessLogic here.
-
-	// TODO: light registry creation needs to happen somewhere else
+	// TODO: light registry creation should happen somewhere else
 	lights := make(map[registry.Location]map[registry.Kind]int, 10)
 
 	if o.SerialPort == "" {
@@ -79,7 +72,6 @@ func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogRes
 		return b.catalog, nil
 	}
 
-	// Your catalog business logic goes here
 	response := &broker.CatalogResponse{}
 
 	for location, kinds := range b.Registry.LocationKindToIds {
@@ -140,9 +132,6 @@ func (b *BusinessLogic) osbServicePlanToRegistryLocationKind(serviceId, planId s
 }
 
 func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.RequestContext) (*broker.ProvisionResponse, error) {
-	// Your provision business logic goes here
-
-	// example implementation:
 	b.Lock()
 	defer b.Unlock()
 
@@ -181,15 +170,12 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 }
 
 func (b *BusinessLogic) Deprovision(request *osb.DeprovisionRequest, c *broker.RequestContext) (*broker.DeprovisionResponse, error) {
-	// Your deprovision business logic goes here
-
-	// example implementation:
 	b.Lock()
 	defer b.Unlock()
 
 	response := broker.DeprovisionResponse{}
 
-	// TODO
+	// TODO(n3wscott): Implement this.
 
 	delete(b.instances, request.InstanceID)
 
@@ -197,46 +183,47 @@ func (b *BusinessLogic) Deprovision(request *osb.DeprovisionRequest, c *broker.R
 }
 
 func (b *BusinessLogic) LastOperation(request *osb.LastOperationRequest, c *broker.RequestContext) (*broker.LastOperationResponse, error) {
-	// Your last-operation business logic goes here
-
 	return nil, nil
 }
 
 func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext) (*broker.BindResponse, error) {
-	// Your bind business logic goes here
-
-	// example implementation:
 	b.Lock()
 	defer b.Unlock()
 
-	_, ok := b.instances[request.InstanceID]
+	instance, ok := b.instances[request.InstanceID]
 	if !ok {
 		return nil, osb.HTTPStatusCodeError{
 			StatusCode: http.StatusNotFound,
 		}
 	}
 
-	lightBinding, err := b.Registry.AssignCredentials(registry.OsbId(request.InstanceID), registry.OsbId(request.BindingID))
-	if err != nil {
-		return nil, err
-	}
-
-	url := fmt.Sprintf("%s/light/%s", b.Url, lightBinding.Secret)
-
-	response := broker.BindResponse{
-		BindResponse: osb.BindResponse{
+	response := broker.BindResponse{}
+	if instance.ServiceID == LightRegistryServiceID {
+		url := fmt.Sprintf("%s/light/{token}", b.Url)
+		response.BindResponse = osb.BindResponse{
+			Credentials: map[string]interface{}{
+				"topic": b.Registry.Subscription.ID(), // I know these do not match but I am going to claim that that are same name.
+				"url":   url,
+			},
+		}
+	} else { // assume it is a light
+		lightBinding, err := b.Registry.AssignCredentials(registry.OsbId(request.InstanceID), registry.OsbId(request.BindingID))
+		if err != nil {
+			return nil, err
+		}
+		url := fmt.Sprintf("%s/light/%s", b.Url, lightBinding.Secret)
+		response.BindResponse = osb.BindResponse{
 			Credentials: map[string]interface{}{
 				"token": lightBinding.Secret,
 				"url":   url,
 			},
-		},
+		}
 	}
-
 	return &response, nil
 }
 
 func (b *BusinessLogic) Unbind(request *osb.UnbindRequest, c *broker.RequestContext) (*broker.UnbindResponse, error) {
-	// Your unbind business logic goes here
+	// TODO(n3wscott): Implement this.
 	return &broker.UnbindResponse{}, nil
 }
 
