@@ -32,10 +32,26 @@
   version = "v1.6.1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/jacobsa/go-serial"
+  packages = ["serial"]
+  revision = "15cf729a72d49e837fa047a4142fa6e4d5ab45a1"
+
+[[projects]]
   name = "github.com/matttproud/golang_protobuf_extensions"
   packages = ["pbutil"]
   revision = "3247c84500bff8d9fb6d579d800f20b3e091582c"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/n3wscott/gated-broker"
+  packages = [
+    "pkg/broker",
+    "pkg/lightboard",
+    "pkg/registry"
+  ]
+  revision = "1a33ab0b03cd1c05ef9b1bd19ae4da6cc37d4823"
 
 [[projects]]
   name = "github.com/pborman/uuid"
@@ -103,6 +119,12 @@
   revision = "8c03d6afdb435c5f35748288e2b9c1dbb484ae56"
 
 [[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "79b0c6888797020a994db17c8510466c72fe75d9"
+
+[[projects]]
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   revision = "7f97868eec74b32b0982dd158a51a446d1da7eb5"
@@ -111,6 +133,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6458c31d54d54f4afc3c9ac3cc30a4bbedde4e09a0e71df7c10448afe2812ed0"
+  inputs-digest = "623a4fd70a8fbdb8f9804834d9853bf73c41b26306e9ecfc3a3a38705becec23"
   solver-name = "gps-cdcl"
   solver-version = 1

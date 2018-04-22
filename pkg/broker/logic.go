@@ -33,7 +33,7 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	return &BusinessLogic{
 		async:     o.Async,
 		instances: make(map[string]*Instance, 10),
-		Registry:  registry.NewControllerInstance("/dev/cu.usbmodem1441", lights),
+		Registry:  registry.NewControllerInstance(o.SerialPort, lights),
 	}, nil
 }
 
@@ -52,13 +52,13 @@ type BusinessLogic struct {
 	catalog *broker.CatalogResponse
 }
 
+var _ broker.Interface = &BusinessLogic{}
+
 func (b *BusinessLogic) AdditionalRouting(router *mux.Router) {
 	// TODO: could pass in the router to the registry and it can do the assigning internally.
 	router.HandleFunc("/graph", b.Registry.HandleGetGraph).Methods("GET")
 	router.HandleFunc("/light/{secret}", b.Registry.HandleSetLight).Methods("PUT")
 }
-
-var _ broker.Interface = &BusinessLogic{}
 
 func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogResponse, error) {
 	if b.catalog != nil {
