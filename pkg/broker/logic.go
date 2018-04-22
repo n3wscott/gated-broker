@@ -13,11 +13,22 @@ import (
 
 	"reflect"
 
+	"flag"
+	"os"
+
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
-	"github.com/n3wscott/gated-broker/pkg/registry"
+	"github.com/n3wscott/ledhouse-broker/pkg/registry"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
 )
+
+const LightRegistryServiceID = "light-registry"
+
+func usage() {
+	fmt.Println("usage:")
+	flag.PrintDefaults()
+	os.Exit(-1)
+}
 
 // NewBusinessLogic is a hook that is called with the Options the program is run
 // with. NewBusinessLogic is the place where you will initialize your
@@ -30,8 +41,12 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	// TODO: light registry creation needs to happen somewhere else
 	lights := make(map[registry.Location]map[registry.Kind]int, 10)
 
+	if o.SerialPort == "" {
+		fmt.Println("Error: Serial Port required.")
+		usage()
+	}
+
 	return &BusinessLogic{
-		async:     o.Async,
 		instances: make(map[string]*Instance, 10),
 		Registry:  registry.NewControllerInstance(o.SerialPort, lights),
 	}, nil
@@ -40,8 +55,6 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 // BusinessLogic provides an implementation of the broker.BusinessLogic
 // interface.
 type BusinessLogic struct {
-	// Indicates if the broker should handle the requests asynchronously.
-	async bool
 	// Synchronize go routines.
 	sync.RWMutex
 	// The light registry
@@ -50,6 +63,7 @@ type BusinessLogic struct {
 	instances map[string]*Instance
 
 	catalog *broker.CatalogResponse
+	Url     string
 }
 
 var _ broker.Interface = &BusinessLogic{}
@@ -85,6 +99,25 @@ func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogRes
 		}
 		response.Services = append(response.Services, service)
 	}
+
+	// Add the light registry.
+	{
+		service := osb.Service{
+			ID:          LightRegistryServiceID,
+			Name:        "Light Registry",
+			Description: "The light registry, the endpoint to use light bindings.",
+			Bindable:    true,
+		}
+
+		plan := osb.Plan{
+			ID:          "default",
+			Name:        "default",
+			Description: "Default light registry",
+		}
+		service.Plans = append(service.Plans, plan)
+		response.Services = append(response.Services, service)
+	}
+
 	// save the catalog for later
 	b.catalog = response
 	return response, nil
@@ -114,7 +147,6 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 	defer b.Unlock()
 
 	response := broker.ProvisionResponse{}
-
 	instance := &Instance{
 		ID:        request.InstanceID,
 		ServiceID: request.ServiceID,
@@ -131,24 +163,20 @@ func (b *BusinessLogic) Provision(request *osb.ProvisionRequest, c *broker.Reque
 			return nil, fmt.Errorf("InstanceID in use")
 		}
 	}
-
-	location, kind := b.osbServicePlanToRegistryLocationKind(request.ServiceID, request.PlanID)
-	light, err := b.Registry.Register(registry.OsbId(request.InstanceID), location, kind)
-
-	if err != nil {
-		return nil, err
-	}
-
 	b.instances[request.InstanceID] = instance
+	if request.ServiceID == LightRegistryServiceID {
+		dashboardURL := fmt.Sprintf("%s/light/", b.Url)
+		response.DashboardURL = &dashboardURL
+	} else { // assume it is a light
+		location, kind := b.osbServicePlanToRegistryLocationKind(request.ServiceID, request.PlanID)
+		light, err := b.Registry.Register(registry.OsbId(request.InstanceID), location, kind)
 
-	dashboardURL := fmt.Sprintf("http:///%s/", string(light.Id))
-	response.DashboardURL = &dashboardURL
-
-	// when we support async:
-	//if request.AcceptsIncomplete {
-	//	response.Async = b.async
-	//}
-
+		if err != nil {
+			return nil, err
+		}
+		dashboardURL := fmt.Sprintf("http:///%s/", string(light.Id))
+		response.DashboardURL = &dashboardURL
+	}
 	return &response, nil
 }
 
@@ -164,10 +192,6 @@ func (b *BusinessLogic) Deprovision(request *osb.DeprovisionRequest, c *broker.R
 	// TODO
 
 	delete(b.instances, request.InstanceID)
-
-	//if request.AcceptsIncomplete {
-	//	response.Async = b.async
-	//}
 
 	return &response, nil
 }
@@ -196,15 +220,15 @@ func (b *BusinessLogic) Bind(request *osb.BindRequest, c *broker.RequestContext)
 	if err != nil {
 		return nil, err
 	}
-	//if request.AcceptsIncomplete {
-	//	response.Async = b.async
-	//}
 
-	url := fmt.Sprintf("http://localhost:3000/light/%s", lightBinding.Secret)
+	url := fmt.Sprintf("%s/light/%s", b.Url, lightBinding.Secret)
 
 	response := broker.BindResponse{
 		BindResponse: osb.BindResponse{
-			Credentials: map[string]interface{}{"url": url},
+			Credentials: map[string]interface{}{
+				"token": lightBinding.Secret,
+				"url":   url,
+			},
 		},
 	}
 
@@ -217,13 +241,8 @@ func (b *BusinessLogic) Unbind(request *osb.UnbindRequest, c *broker.RequestCont
 }
 
 func (b *BusinessLogic) Update(request *osb.UpdateInstanceRequest, c *broker.RequestContext) (*broker.UpdateInstanceResponse, error) {
-	// Your logic for updating a service goes here.
-	response := broker.UpdateInstanceResponse{}
-	if request.AcceptsIncomplete {
-		response.Async = b.async
-	}
-
-	return &response, nil
+	// Not supported.
+	return &broker.UpdateInstanceResponse{}, nil
 }
 
 func (b *BusinessLogic) ValidateBrokerAPIVersion(version string) error {

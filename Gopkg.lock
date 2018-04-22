@@ -45,7 +45,7 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/n3wscott/gated-broker"
+  name = "github.com/n3wscott/ledhouse-broker"
   packages = [
     "pkg/broker",
     "pkg/lightboard",

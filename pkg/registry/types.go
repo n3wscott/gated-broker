@@ -3,7 +3,7 @@ package registry
 import (
 	"net/http"
 
-	"github.com/n3wscott/gated-broker/pkg/lightboard"
+	"github.com/n3wscott/ledhouse-broker/pkg/lightboard"
 )
 
 type Controller interface {

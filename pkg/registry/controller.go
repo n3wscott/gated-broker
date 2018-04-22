@@ -2,7 +2,7 @@ package registry
 
 import (
 	"github.com/golang/glog"
-	"github.com/n3wscott/gated-broker/pkg/lightboard"
+	"github.com/n3wscott/ledhouse-broker/pkg/lightboard"
 )
 
 func NewControllerInstance(port string, lights map[Location]map[Kind]int) *ControllerInstance {

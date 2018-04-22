@@ -13,9 +13,9 @@ import (
 
 	"github.com/golang/glog"
 
-	//"github.com/n3wscott/gated-broker/pkg/server"
+	//"github.com/n3wscott/ledhouse-broker/pkg/server"
 
-	"github.com/n3wscott/gated-broker/pkg/broker"
+	"github.com/n3wscott/ledhouse-broker/pkg/broker"
 	"github.com/pmorie/osb-broker-lib/pkg/metrics"
 	"github.com/pmorie/osb-broker-lib/pkg/rest"
 	"github.com/pmorie/osb-broker-lib/pkg/server"
@@ -23,17 +23,6 @@ import (
 )
 
 var addr = flag.String("addr", ":8080", "http service address")
-
-//
-//func main() {
-//	flag.Parse()
-//
-//	s := server.CreateServer()
-//
-//	glog.Infof("Starting Broker, %s", "http://localhost:12345")
-//	glog.Fatal(http.ListenAndServe(":12345", s.Router))
-//
-//}
 
 var options struct {
 	broker.Options
@@ -82,6 +71,7 @@ func runWithContext(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	businessLogic.Url = "http://localhost" + addr
 
 	//// Prom. metrics
 	reg := prom.NewRegistry()
@@ -105,6 +95,7 @@ func runWithContext(ctx context.Context) error {
 	} else {
 		err = s.RunTLS(ctx, addr, options.TLSCert, options.TLSKey)
 	}
+
 	return err
 }
 
