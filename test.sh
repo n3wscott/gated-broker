@@ -10,7 +10,7 @@ printf "\n\nProvision the light registry:\n\n"
 
 curl -X PUT "http://localhost:3000/v2/service_instances/lightreg" -H "accept: application/json" \
   -H "X-Broker-API-Version: 2.13" \
-  -H "X-Broker-API-Originating-Identity: petstore eyJoZWxsbyI6MH0=" \
+  -H "X-Broker-API-Originating-Identity: ledhouse bGVkaG91c2U=" \
   -H "Content-Type: application/json" \
   -d "{\"service_id\":\"light-registry\",\"plan_id\":\"default\"}"
 
@@ -18,7 +18,7 @@ printf "\n\nBind to the light registry:\n\n"
 
 curl -X PUT "http://localhost:3000/v2/service_instances/lightreg/service_bindings/binding-lightreg" \
   -H "accept: application/json" -H "X-Broker-API-Version: 2.13" \
-  -H "X-Broker-API-Originating-Identity: petstore eyJoZWxsbyI6MH0=" \
+  -H "X-Broker-API-Originating-Identity: ledhouse bGVkaG91c2U=" \
   -H "Content-Type: application/json" \
   -d "{\"service_id\":\"light-registry\",\"plan_id\":\"default\"}"
 
@@ -28,7 +28,7 @@ printf "\n\nProvision a light:\n\n"
 
 curl -X PUT "http://localhost:3000/v2/service_instances/aabbcc11" -H "accept: application/json" \
   -H "X-Broker-API-Version: 2.13" \
-  -H "X-Broker-API-Originating-Identity: petstore eyJoZWxsbyI6MH0=" \
+  -H "X-Broker-API-Originating-Identity: ledhouse bGVkaG91c2U=" \
   -H "Content-Type: application/json" \
   -d "{\"service_id\":\"location-4a\",\"plan_id\":\"location-4a-kind-blue\"}"
 
@@ -36,7 +36,7 @@ printf "\n\nBind to that light:\n\n"
 
 curl -X PUT "http://localhost:3000/v2/service_instances/aabbcc11/service_bindings/binding-aabbcc11" \
   -H "accept: application/json" -H "X-Broker-API-Version: 2.13" \
-  -H "X-Broker-API-Originating-Identity: petstore eyJoZWxsbyI6MH0=" \
+  -H "X-Broker-API-Originating-Identity: ledhouse bGVkaG91c2U=" \
   -H "Content-Type: application/json" \
   -d "{\"service_id\":\"location-4a\",\"plan_id\":\"location-4a-kind-blue\"}"
 

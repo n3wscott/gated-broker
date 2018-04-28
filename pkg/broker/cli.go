@@ -10,6 +10,9 @@ type Options struct {
 	// For Pub/Sub
 	ProjectID    string
 	Subscription string
+
+	// Alt Pub/Sub config from a binding file.
+	Binding string
 }
 
 // AddFlags is a hook called to initialize the CLI flags for broker options.
@@ -20,4 +23,6 @@ func AddFlags(o *Options) {
 
 	flag.StringVar(&o.ProjectID, "projectId", "", "GCP projectId, for Pub/Sub")
 	flag.StringVar(&o.Subscription, "subscription", "", "Pub/Sub subscription the Light Registry will use")
+
+	flag.StringVar(&o.Binding, "binding", "", "Pub/Sub binding to use from Service Catalog")
 }

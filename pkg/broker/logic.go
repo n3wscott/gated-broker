@@ -18,6 +18,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
+	"github.com/n3wscott/ledhouse-broker/pkg/binding"
 	"github.com/n3wscott/ledhouse-broker/pkg/registry"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
 )
@@ -37,6 +38,15 @@ func NewBusinessLogic(o Options) (*BusinessLogic, error) {
 	if o.SerialPort == "" {
 		fmt.Println("Error: Serial Port required.")
 		usage()
+	}
+
+	if o.Binding != "" {
+		projectId, _, subscriptionId, err := binding.PubSubBinding(o.Binding)
+		if err != nil {
+			return nil, err
+		}
+		o.ProjectID = projectId
+		o.Subscription = subscriptionId
 	}
 
 	return &BusinessLogic{
