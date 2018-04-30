@@ -106,7 +106,7 @@ func (b *BusinessLogic) GetCatalog(c *broker.RequestContext) (*broker.CatalogRes
 	{
 		service := osb.Service{
 			ID:          LightRegistryServiceID,
-			Name:        "Light Registry",
+			Name:        "LightRegistry",
 			Description: "The light registry, the endpoint to use light bindings.",
 			Bindable:    true,
 		}
